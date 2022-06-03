@@ -2,14 +2,10 @@ package com.meteor.vo.mutable;
 
 import java.util.List;
 
-import lombok.Builder;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-@RequiredArgsConstructor
-@Builder
 @Getter
 @Setter
 @ToString

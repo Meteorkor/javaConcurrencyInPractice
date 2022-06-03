@@ -2,7 +2,6 @@ package com.meteor.vo.immutable;
 
 import lombok.Builder;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
 /**
@@ -10,7 +9,6 @@ import lombok.ToString;
  * It can be changed by reflection.<br>
  * It is recommended to add final.
  */
-@RequiredArgsConstructor
 @Builder
 @Getter
 @ToString
