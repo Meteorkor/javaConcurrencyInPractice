@@ -4,6 +4,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 public class ThreadExecutorService {
     private final ExecutorService executorService;
@@ -22,5 +23,14 @@ public class ThreadExecutorService {
 
     public <T> Future<T> call(Callable<T> callable) {
         return executorService.submit(callable);
+    }
+
+    public void shutdown() {
+        executorService.shutdown();
+
+    }
+
+    public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
+        return executorService.awaitTermination(timeout, unit);
     }
 }
