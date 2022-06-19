@@ -64,4 +64,22 @@ public class PhaserTest {
 
     }
 
+    @Test
+    void registerPartiesTest() throws InterruptedException {
+        Phaser p = new Phaser(0);
+
+        for (int i = 0; i < 3; i++) {
+            executorService.submit(() -> {
+                p.register();//parties up
+                System.out.println("wait");
+                p.arriveAndAwaitAdvance();
+            });
+        }
+
+        executorService.shutdown();
+        final boolean b = executorService.awaitTermination(5, TimeUnit.SECONDS);
+        Assertions.assertTrue(b);
+
+    }
+
 }
