@@ -2,11 +2,16 @@ package com.meteor.lazy;
 
 import org.junit.jupiter.api.Test;
 
+import net.jcip.annotations.ThreadSafe;
+
+@ThreadSafe
 public class LazyTest {
 
     @Test
-    void lazyHolderTest() {
+    void lazyHolderTest() throws InterruptedException {
+
         System.out.println("callBefore");
+        LazyStaticValue.cAB();
         System.out.println("LazyValue.getLazyValue() : " + LazyStaticValue.getLazyValue());
         System.out.println("LazyValue.getLazyValue() : " + LazyStaticValue.getLazyValue());
         System.out.println("callAfter");
@@ -21,9 +26,42 @@ public class LazyTest {
         System.out.println("callAfter");
     }
 
+    private class LazyNormalValue {
+        private String value;
+
+        public String getValue() {
+            if (value == null) {
+                value = getInitValue();
+            }
+            return value;
+        }
+
+        public String getValueDbc() {
+            if (value != null) {
+                return value;
+            }
+            synchronized (this) {
+                if (value == null) {
+                    value = getInitValue();
+                }
+                return value;
+            }
+        }
+
+        private String getInitValue() {
+            return "TEXT";
+        }
+
+    }
+
     private static class LazyStaticValue {
         public static String getLazyValue() {
+
             return LazyValueHolder.valaue;
+        }
+
+        private static String cAB() {
+            return "";
         }
 
         private static String createText() {
