@@ -8,9 +8,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.springframework.util.StopWatch;
 import org.springframework.util.concurrent.SettableListenableFuture;
 
 public class FutureTest {
@@ -100,6 +102,114 @@ public class FutureTest {
         }, forkJoinPool);
 
         voidCompletableFuture.get();
+    }
+
+    @Test
+    void completableFutureAllOf() throws ExecutionException, InterruptedException {
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
+
+        final CompletableFuture<Void> voidCompletableFuture1 = CompletableFuture.runAsync(() -> {
+
+        });
+        final CompletableFuture<Void> voidCompletableFuture2 = CompletableFuture.runAsync(() -> {
+            try {
+                Thread.sleep(100 * 5);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+        });
+        final CompletableFuture<Void> voidCompletableFuture3 = CompletableFuture.runAsync(() -> {
+            try {
+                Thread.sleep(1000 * 5);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
+
+        final CompletableFuture<Void> voidCompletableFuture = CompletableFuture.allOf(voidCompletableFuture1,
+                                                                                      voidCompletableFuture2,
+                                                                                      voidCompletableFuture3);
+        final Void unused = voidCompletableFuture.get();
+        stopWatch.stop();
+        Assertions.assertEquals(true, stopWatch.getTotalTimeMillis() > 1000 * 5);
+    }
+
+    @Test
+    void completableFutureAnyOf() throws ExecutionException, InterruptedException {
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
+
+        final CompletableFuture<Void> voidCompletableFuture1 = CompletableFuture.runAsync(() -> {
+
+        });
+        final CompletableFuture<Void> voidCompletableFuture2 = CompletableFuture.runAsync(() -> {
+            try {
+                Thread.sleep(100 * 5);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+        });
+        final CompletableFuture<Void> voidCompletableFuture3 = CompletableFuture.runAsync(() -> {
+            try {
+                Thread.sleep(1000 * 5);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
+
+        final CompletableFuture<Object> objectCompletableFuture = CompletableFuture.anyOf(
+                voidCompletableFuture1,
+                voidCompletableFuture2,
+                voidCompletableFuture3);
+        final Object o = objectCompletableFuture.get();
+        stopWatch.stop();
+        Assertions.assertEquals(true, stopWatch.getTotalTimeMillis() < 100 * 5);
+    }
+
+    @Test
+    void completableFutureAnyOfThenAccept() throws ExecutionException, InterruptedException {
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
+
+        final CompletableFuture<Void> voidCompletableFuture1 = CompletableFuture.runAsync(() -> {
+
+        });
+        final CompletableFuture<Void> voidCompletableFuture2 = CompletableFuture.runAsync(() -> {
+            try {
+                Thread.sleep(100 * 5);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+        });
+        final CompletableFuture<Void> voidCompletableFuture3 = CompletableFuture.runAsync(() -> {
+            try {
+                Thread.sleep(1000 * 5);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
+
+        final CompletableFuture<Object> objectCompletableFuture = CompletableFuture.anyOf(
+                voidCompletableFuture1,
+                voidCompletableFuture2,
+                voidCompletableFuture3);
+
+        AtomicInteger atomicInteger = new AtomicInteger(0);
+
+        objectCompletableFuture.thenAccept(data -> {
+            atomicInteger.incrementAndGet();
+        });
+        final Object o = objectCompletableFuture.get();
+        objectCompletableFuture.thenAccept(data -> {
+            atomicInteger.incrementAndGet();
+        });
+        stopWatch.stop();
+        Assertions.assertEquals(true, stopWatch.getTotalTimeMillis() < 100 * 5);
+        Assertions.assertEquals(2, atomicInteger.get());
     }
 
 }
