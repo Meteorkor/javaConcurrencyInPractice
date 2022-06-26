@@ -11,6 +11,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.util.StopWatch;
 import org.springframework.util.concurrent.SettableListenableFuture;
@@ -210,6 +211,166 @@ public class FutureTest {
         stopWatch.stop();
         Assertions.assertEquals(true, stopWatch.getTotalTimeMillis() < 100 * 5);
         Assertions.assertEquals(2, atomicInteger.get());
+    }
+
+    //    @Test
+    @RepeatedTest(100)
+    void completableFutureAnyOfThenAcceptAsync() throws ExecutionException, InterruptedException {
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
+
+        final CompletableFuture<Void> voidCompletableFuture1 = CompletableFuture.runAsync(() -> {
+
+        });
+        final CompletableFuture<Void> voidCompletableFuture2 = CompletableFuture.runAsync(() -> {
+            try {
+                Thread.sleep(100 * 5);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+        });
+        final CompletableFuture<Void> voidCompletableFuture3 = CompletableFuture.runAsync(() -> {
+            try {
+                Thread.sleep(1000 * 5);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
+
+        final CompletableFuture<Object> objectCompletableFuture = CompletableFuture.anyOf(
+                voidCompletableFuture1,
+                voidCompletableFuture2,
+                voidCompletableFuture3);
+
+        AtomicInteger atomicInteger = new AtomicInteger(0);
+
+        final CompletableFuture<Void> voidCompletableFuture = objectCompletableFuture.thenAcceptAsync(data -> {
+            //ForkJoinPool.commonPool-worker-23,5,main
+            System.out.println("Thread.currentThread(thenAcceptAsync) : " + Thread.currentThread());
+            atomicInteger.incrementAndGet();
+        });
+        stopWatch.stop();
+        voidCompletableFuture.get();//없으면 async라 incrementAndGet()가 호출될것이라는 보장은 없음
+        Assertions.assertEquals(true, stopWatch.getTotalTimeMillis() < 100 * 5);
+        Assertions.assertEquals(1, atomicInteger.get());
+    }
+
+    @Test
+    void completableFutureSupplyAsync() throws ExecutionException, InterruptedException {
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
+
+        final CompletableFuture<String> voidCompletableFuture1 = CompletableFuture.supplyAsync(() -> {
+            //runAsync는 Callable 반환이 안됨
+            return "A";
+        });
+        final CompletableFuture<String> voidCompletableFuture2 = CompletableFuture.supplyAsync(() -> {
+            try {
+                Thread.sleep(100 * 5);
+
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            return "B";
+        });
+        final CompletableFuture<String> voidCompletableFuture3 = CompletableFuture.supplyAsync(() -> {
+            try {
+                Thread.sleep(1000 * 5);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            return "C";
+        });
+
+        final CompletableFuture<Object> objectCompletableFuture = CompletableFuture.anyOf(
+                voidCompletableFuture1,
+                voidCompletableFuture2,
+                voidCompletableFuture3);
+
+        AtomicInteger atomicInteger = new AtomicInteger(0);
+
+        objectCompletableFuture.thenAccept(data -> {
+            atomicInteger.incrementAndGet();
+        });
+        final Object o = objectCompletableFuture.get();
+        System.out.println("o : " + o);
+        objectCompletableFuture.thenAccept(data -> {
+            atomicInteger.incrementAndGet();
+        });
+        stopWatch.stop();
+        Assertions.assertEquals(true, stopWatch.getTotalTimeMillis() < 100 * 5);
+        Assertions.assertEquals(2, atomicInteger.get());
+    }
+
+    @Test
+    void completableFutureObtrudeValue() throws ExecutionException, InterruptedException {
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
+
+        final CompletableFuture<String> voidCompletableFuture1 = CompletableFuture.supplyAsync(() -> {
+            //runAsync는 Callable 반환이 안됨
+            return "A";
+        });
+        final CompletableFuture<String> voidCompletableFuture2 = CompletableFuture.supplyAsync(() -> {
+            try {
+                Thread.sleep(100 * 5);
+
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            return "B";
+        });
+        final CompletableFuture<String> voidCompletableFuture3 = CompletableFuture.supplyAsync(() -> {
+            try {
+                Thread.sleep(1000 * 5);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            return "C";
+        });
+
+        voidCompletableFuture3.obtrudeValue("FORECED");
+        final String s = voidCompletableFuture3.get();
+        Assertions.assertEquals("FORECED", s);
+    }
+
+    @Test
+    void completableFutureRunAfterBoth() throws ExecutionException, InterruptedException {
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
+
+        final CompletableFuture<String> voidCompletableFuture1 = CompletableFuture.supplyAsync(() -> {
+            //runAsync는 Callable 반환이 안됨
+            return "A";
+        });
+        final CompletableFuture<String> voidCompletableFuture2 = CompletableFuture.supplyAsync(() -> {
+            try {
+                Thread.sleep(100 * 5);
+
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            return "B";
+        });
+        final CompletableFuture<String> voidCompletableFuture3 = CompletableFuture.supplyAsync(() -> {
+            try {
+                Thread.sleep(1000 * 5);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            return "C";
+        });
+
+        voidCompletableFuture1.runAfterBoth(voidCompletableFuture3, () -> {
+            //async로 call됨
+            //Thread[ForkJoinPool.commonPool-worker-5,5,main]
+            System.out.println(Thread.currentThread() + "]runAfterBoth");
+        });
+
+        stopWatch.stop();
+        Assertions.assertEquals(true, stopWatch.getTotalTimeMillis() < 1000 * 5);
+
     }
 
 }
